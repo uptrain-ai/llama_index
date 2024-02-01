@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, DefaultDict, Dict, List, Optional, Set
 
 import nest_asyncio
 from uptrain import APIClient, Evals, Settings
@@ -27,12 +27,12 @@ class UpTrainDataSchema:
         self.response: str = response
 
         ## RERANKING
-        self.old_context: dict = {}
-        self.new_context: dict = {}
+        self.old_context: List[str] = []
+        self.new_context: List[str] = []
 
         ## SUB_QUESTION
         # Map of sub question ID to question, context, and response
-        self.sub_question_map: Dict[str, Dict[str]] = defaultdict(dict)
+        self.sub_question_map: DefaultDict[str, dict] = defaultdict(dict)
         # Parent ID of sub questions
         self.sub_question_parent_id: str = ""
         # Parent question
@@ -42,7 +42,7 @@ class UpTrainDataSchema:
 class UpTrainCallbackHandler(BaseCallbackHandler):
     """UpTrain callback handler."""
 
-    def __init__(self, uptrain_api_key) -> None:
+    def __init__(self, uptrain_api_key: str) -> None:
         """Initialize the UpTrain callback handler."""
         nest_asyncio.apply()
         super().__init__(
@@ -72,7 +72,6 @@ class UpTrainCallbackHandler(BaseCallbackHandler):
             self.schema.question = payload["query_str"]
         if event_type is CBEventType.TEMPLATING and "template_vars" in payload:
             template_vars = payload["template_vars"]
-            # self.schema.question = template_vars.get("query_str", "")
             self.schema.context = template_vars.get("context_str", "")
         elif event_type is CBEventType.RERANKING and "nodes" in payload:
             self.schema.eval_types.add("reranking")
@@ -85,6 +84,7 @@ class UpTrainCallbackHandler(BaseCallbackHandler):
                 self.schema.eval_types.add("sub_question")
             # Store sub question data - question and parent id
             self.schema.sub_question_parent_id = parent_id
+        return event_id
 
     def on_event_end(
         self,
@@ -104,8 +104,8 @@ class UpTrainCallbackHandler(BaseCallbackHandler):
                 data=list(self.schema.sub_question_map.values()),
                 checks=[
                     Evals.CONTEXT_RELEVANCE,
-                    # Evals.FACTUAL_ACCURACY,
-                    # Evals.RESPONSE_COMPLETENESS,
+                    Evals.FACTUAL_ACCURACY,
+                    Evals.RESPONSE_COMPLETENESS,
                 ],
             )
             # Perform evaluation for question and all sub questions (as a whole)
@@ -113,26 +113,22 @@ class UpTrainCallbackHandler(BaseCallbackHandler):
                 sub_question["question"]
                 for sub_question in self.schema.sub_question_map.values()
             ]
-            sub_questions = "\n".join(
+            sub_questions_formatted = "\n".join(
                 [
                     f"{index}. {string}"
                     for index, string in enumerate(sub_questions, start=1)
                 ]
             )
-            # self.uptrain_client.log_and_evaluate(
-            #     project_name="llama_sub_question_q_vs_all",
-            #     data=[
-            #         {
-            #             "question": self.schema.question,
-            #             "sub_questions": sub_questions,
-            #         }
-            #     ],
-            #     checks=[
-            #         Evals.CONTEXT_RELEVANCE,
-            #         # Evals.FACTUAL_ACCURACY,
-            #         # Evals.RESPONSE_COMPLETENESS,
-            #     ],
-            # )
+            self.uptrain_client.log_and_evaluate(
+                project_name="llama_sub_question_q_vs_all",
+                data=[
+                    {
+                        "question": self.schema.question,
+                        "sub_questions": sub_questions_formatted,
+                    }
+                ],
+                checks=[Evals.SUB_QUERY_COMPLETENESS],
+            )
         # Should not be called for sub questions
         if (
             event_type is CBEventType.SYNTHESIZE
@@ -151,56 +147,57 @@ class UpTrainCallbackHandler(BaseCallbackHandler):
                 ],
                 checks=[
                     Evals.CONTEXT_RELEVANCE,
-                    # Evals.FACTUAL_ACCURACY,
-                    # Evals.RESPONSE_COMPLETENESS,
+                    Evals.FACTUAL_ACCURACY,
+                    Evals.RESPONSE_COMPLETENESS,
                 ],
             )
         elif event_type is CBEventType.RERANKING:
             # Store new context data
             self.schema.new_context = [node.text for node in payload["nodes"]]
-
             if len(self.schema.old_context) == len(self.schema.new_context):
-                self.schema.old_context = "\n".join(
+                context = "\n".join(
                     [
                         f"{index}. {string}"
                         for index, string in enumerate(self.schema.old_context, start=1)
                     ]
                 )
-                self.schema.new_context = "\n".join(
+                reranked_context = "\n".join(
                     [
                         f"{index}. {string}"
                         for index, string in enumerate(self.schema.new_context, start=1)
                     ]
                 )
-                # # Perform evaluation for reranking
-                # self.uptrain_client.log_and_evaluate(
-                #     project_name="llama_reranking_2",
-                #     data=[
-                #         {
-                #             "old_context": self.schema.old_context,
-                #             "new_context": self.schema.new_context,
-                #         }
-                #     ],
-                #     checks=[
-                #         Evals.CONTEXT_MATCHING,
-                #     ],
-                # )
+                # Perform evaluation for reranking
+                self.uptrain_client.log_and_evaluate(
+                    project_name="llama_reranking_2",
+                    data=[
+                        {
+                            "question": self.schema.question,
+                            "context": context,
+                            "reranked_context": reranked_context,
+                        }
+                    ],
+                    checks=[
+                        Evals.CONTEXT_RERANKING,
+                    ],
+                )
             else:
-                self.schema.old_context = "\n".join(self.schema.old_context)
-                self.schema.new_context = "\n".join(self.schema.new_context)
-                # # Perform evaluation for resizing
-                # self.uptrain_client.log_and_evaluate(
-                #     project_name="llama_reranking_1",
-                #     data=[
-                #         {
-                #             "old_context": self.schema.old_context,
-                #             "new_context": self.schema.new_context,
-                #         }
-                #     ],
-                #     checks=[
-                #         Evals.CONTEXT_MATCHING,
-                #     ],
-                # )
+                context = "\n".join(self.schema.old_context)
+                concise_context = "\n".join(self.schema.new_context)
+                # Perform evaluation for resizing
+                self.uptrain_client.log_and_evaluate(
+                    project_name="llama_reranking_1",
+                    data=[
+                        {
+                            "question": self.schema.question,
+                            "context": context,
+                            "concise_context": concise_context,
+                        }
+                    ],
+                    checks=[
+                        Evals.CONTEXT_CONCISENESS,
+                    ],
+                )
         elif event_type is CBEventType.SUB_QUESTION:
             # Store sub question data
             self.schema.sub_question_map[event_id]["question"] = payload[
@@ -216,12 +213,18 @@ class UpTrainCallbackHandler(BaseCallbackHandler):
         return super().start_trace(trace_id)
 
     def end_trace(
-        self, trace_id: str | None = None, trace_map: Dict[str, List[str]] | None = None
+        self,
+        trace_id: Optional[str] = None,
+        trace_map: Optional[Dict[str, List[str]]] = None,
     ) -> None:
         self._trace_map = trace_map or defaultdict(list)
         return super().end_trace(trace_id, trace_map)
 
-    def build_trace_map(self, cur_event_id, trace_map={}):
+    def build_trace_map(
+        self,
+        cur_event_id: str,
+        trace_map: Any,
+    ) -> Dict[str, Any]:
         event_pair = self._event_pairs_by_id[cur_event_id]
         if event_pair:
             event_data = {
