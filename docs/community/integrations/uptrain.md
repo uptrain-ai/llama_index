@@ -2,7 +2,7 @@
 
 **Overview**: In this example, we will see how to use UpTrain with LlamaIndex. UpTrain ([github](https://github.com/uptrain-ai/uptrain) || [website](https://github.com/uptrain-ai/uptrain/) || [docs](https://docs.uptrain.ai/)) is an open-source platform to evaluate and improve GenAI applications. It provides grades for 20+ preconfigured checks (covering language, code, embedding use cases), performs root cause analysis on failure cases and gives insights on how to resolve them. More details on UpTrain's evaluations can be found [here](https://github.com/uptrain-ai/uptrain?tab=readme-ov-file#pre-built-evaluations-we-offer-).
 
-**Problem**: As an increasing number of companies are graduating their LLM prototypes to production-ready applications, their RAG pipelines are also getting complex. Developers are utilising modules like QueryRewrite, Context ReRank, etc., to enhance the accuracy of their RAG systems. 
+**Problem**: As an increasing number of companies are graduating their LLM prototypes to production-ready applications, their RAG pipelines are also getting complex. Developers are utilising modules like QueryRewrite, Context ReRank, etc., to enhance the accuracy of their RAG systems.
 
 With increasing complexity comes more points of failure.
 
@@ -12,7 +12,7 @@ With increasing complexity comes more points of failure.
 **Solution**: UpTrain helps to solve for both:
 
 1. UpTrain provides a series of checks to evaluate the quality of generated response, retrieved-context as well as all the interim steps. The relevant checks are ContextRelevance, SubQueryCompleteness, ContextReranking, ContextConciseness, FactualAccuracy, ContextUtilization, ResponseCompleteness, ResponseConciseness, etc.
-2. UpTrain also allows you to experiment with different embedding models as well as have an "evaluate_experiments" method to compare different RAG configurations. 
+2. UpTrain also allows you to experiment with different embedding models as well as have an "evaluate_experiments" method to compare different RAG configurations.
 
 # How to go about it?
 
@@ -27,6 +27,7 @@ There are two ways you can use UpTrain with LlamaIndex:
 Below is how to use UpTrain Callback Handler to evaluate different components of your RAG pipelines.
 
 ## 1. **RAG Query Engine Evaluations**:
+
 The RAG query engine plays a crucial role in retrieving context and generating responses. To ensure its performance and response quality, we conduct the following evaluations:
 
 - **[Context Relevance](https://docs.uptrain.ai/predefined-evaluations/context-awareness/context-relevance)**: Determines if the retrieved context has sufficient information to answer the user query or not.
@@ -34,17 +35,21 @@ The RAG query engine plays a crucial role in retrieving context and generating r
 - **[Response Completeness](https://docs.uptrain.ai/predefined-evaluations/response-quality/response-completeness)**: Checks if the response contains all the information required to answer the user query comprehensively.
 
 ## 2. **Sub-Question Query Generation Evaluation**:
+
 The SubQuestionQueryGeneration operator decomposes a question into sub-questions, generating responses for each using an RAG query engine. To measure it's accuracy, we use:
 
 - **[Sub Query Completeness](https://docs.uptrain.ai/predefined-evaluations/query-quality/sub-query-completeness)**: Assures that the sub-questions accurately and comprehensively cover the original query.
 
 ## 3. **Re-Ranking Evaluations**:
+
 Re-ranking involves reordering nodes based on relevance to the query and choosing the top nodes. Different evaluations are performed based on the number of nodes returned after re-ranking.
 
 a. Same Number of Nodes
+
 - **[Context Reranking](https://docs.uptrain.ai/predefined-evaluations/context-awareness/context-reranking)**: Checks if the order of re-ranked nodes is more relevant to the query than the original order.
 
 b. Different Number of Nodes:
+
 - **[Context Conciseness](https://docs.uptrain.ai/predefined-evaluations/context-awareness/context-conciseness)**: Examines whether the reduced number of nodes still provides all the required information.
 
 These evaluations collectively ensure the robustness and effectiveness of the RAG query engine, SubQuestionQueryGeneration operator, and the re-ranking process in the LlamaIndex pipeline.
@@ -52,33 +57,65 @@ These evaluations collectively ensure the robustness and effectiveness of the RA
 #### **Note:**
 
 - We have performed evaluations using a basic RAG query engine; the same evaluations can be performed using the advanced RAG query engine as well.
-- Same is true for Re-Ranking evaluations, we have performed evaluations using CohereRerank, the same evaluations can be performed using other re-rankers as well.
+- Same is true for Re-Ranking evaluations, we have performed evaluations using SentenceTransformerRerank, the same evaluations can be performed using other re-rankers as well.
+
+## 1. **RAG Query Engine Evaluations**:
+
+The RAG query engine plays a crucial role in retrieving context and generating responses. To ensure its performance and response quality, we conduct the following evaluations:
+
+- **[Context Relevance](https://docs.uptrain.ai/predefined-evaluations/context-awareness/context-relevance)**: Determines if the retrieved context has sufficient information to answer the user query or not.
+- **[Factual Accuracy](https://docs.uptrain.ai/predefined-evaluations/context-awareness/factual-accuracy)**: Assesses if the LLM's response can be verified via the retrieved context.
+- **[Response Completeness](https://docs.uptrain.ai/predefined-evaluations/response-quality/response-completeness)**: Checks if the response contains all the information required to answer the user query comprehensively.
+
+## 2. **Sub-Question Query Generation Evaluation**:
+
+The SubQuestionQueryGeneration operator decomposes a question into sub-questions, generating responses for each using an RAG query engine. To measure it's accuracy, we use:
+
+- **[Sub Query Completeness](https://docs.uptrain.ai/predefined-evaluations/query-quality/sub-query-completeness)**: Assures that the sub-questions accurately and comprehensively cover the original query.
+
+## 3. **Re-Ranking Evaluations**:
+
+Re-ranking involves reordering nodes based on relevance to the query and choosing the top nodes. Different evaluations are performed based on the number of nodes returned after re-ranking.
+
+a. Same Number of Nodes
+
+- **[Context Reranking](https://docs.uptrain.ai/predefined-evaluations/context-awareness/context-reranking)**: Checks if the order of re-ranked nodes is more relevant to the query than the original order.
+
+b. Different Number of Nodes:
+
+- **[Context Conciseness](https://docs.uptrain.ai/predefined-evaluations/context-awareness/context-conciseness)**: Examines whether the reduced number of nodes still provides all the required information.
+
+These evaluations collectively ensure the robustness and effectiveness of the RAG query engine, SubQuestionQueryGeneration operator, and the re-ranking process in the LlamaIndex pipeline.
+
+#### **Note:**
+
+- We have performed evaluations using basic RAG query engine, the same evaluations can be performed using the advanced RAG query engine as well.
+- Same is true for Re-Ranking evaluations, we have performed evaluations using SentenceTransformerRerank, the same evaluations can be performed using other re-rankers as well.
 
 ## Install Dependencies and Import Libraries
 
 Install notebook dependencies.
 
 ```bash
-pip install -q html2text llama-index pandas tqdm uptrain cohere
+%pip install llama-index-readers-web
+%pip install llama-index-callbacks-uptrain
+%pip install -q html2text llama-index pandas tqdm uptrain torch sentence-transformers
 ```
 
 Import libraries.
 
 ```python
-from llama_index import (
-    ServiceContext,
-    VectorStoreIndex,
-)
-from llama_index.node_parser import SentenceSplitter
-from llama_index.readers import SimpleWebPageReader
-from llama_index.callbacks import CallbackManager, UpTrainCallbackHandler
-from llama_index.postprocessor.cohere_rerank import CohereRerank
-from llama_index.service_context import set_global_service_context
-from llama_index.query_engine.sub_question_query_engine import (
-    SubQuestionQueryEngine,
-)
-from llama_index.tools.query_engine import QueryEngineTool
-from llama_index.tools.types import ToolMetadata
+from llama_index.core import Settings, VectorStoreIndex
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.readers.web import SimpleWebPageReader
+from llama_index.core.callbacks import CallbackManager
+from llama_index.callbacks.uptrain.base import UpTrainCallbackHandler
+from llama_index.core.query_engine import SubQuestionQueryEngine
+from llama_index.core.tools import QueryEngineTool, ToolMetadata
+from llama_index.core.postprocessor import SentenceTransformerRerank
+from llama_index.llms.openai import OpenAI
+
+import os
 ```
 
 ## Setup
@@ -118,16 +155,17 @@ Parameters:
 **Note:** The `project_name_prefix` will be used as prefix for the project names in the UpTrain dashboard. These will be different for different types of evals. For example, if you set project_name_prefix="llama" and perform the sub_question evaluation, the project name will be "llama_sub_question_answering".
 
 ```python
+os.environ[
+    "OPENAI_API_KEY"
+] = "sk-***********"  # Replace with your OpenAI API key
+
 callback_handler = UpTrainCallbackHandler(
     key_type="openai",
-    api_key="sk-******************************",
+    api_key=os.environ["OPENAI_API_KEY"],
     project_name_prefix="llama",
 )
-callback_manager = CallbackManager([callback_handler])
-service_context = ServiceContext.from_defaults(
-    callback_manager=callback_manager
-)
-set_global_service_context(service_context)
+
+Settings.callback_manager = CallbackManager([callback_handler])
 ```
 
 ## Load and Parse Documents
@@ -151,7 +189,7 @@ nodes = parser.get_nodes_from_documents(documents)
 
 # 1. RAG Query Engine Evaluation
 
-UpTrain callback handler will automatically capture the query, context and response once generated and will run the following three evaluations *(Graded from 0 to 1)* on the response:
+UpTrain callback handler will automatically capture the query, context and response once generated and will run the following three evaluations _(Graded from 0 to 1)_ on the response:
 
 - **[Context Relevance](https://docs.uptrain.ai/predefined-evaluations/context-awareness/context-relevance)**: Determines if the retrieved context has sufficient information to answer the user query or not.
 - **[Factual Accuracy](https://docs.uptrain.ai/predefined-evaluations/context-awareness/factual-accuracy)**: Assesses if the LLM's response can be verified via the retrieved context.
@@ -159,7 +197,7 @@ UpTrain callback handler will automatically capture the query, context and respo
 
 ```python
 index = VectorStoreIndex.from_documents(
-    documents, service_context=service_context
+    documents,
 )
 query_engine = index.as_query_engine()
 
@@ -176,33 +214,48 @@ for query in queries:
 ```
 
     Question: What did Paul Graham do growing up?
+    Context: I was invited to give a talk at a Lisp conference, so I gave one about how we'd used Lisp at Viaweb. Afterward I put a postscript file of this talk online, on paulgraham.com, which I'd created years before using Viaweb but had never used for anything. In one day it got 30,000...
+    Response: Paul Graham wrote short stories and started programming on the IBM 1401 in 9th grade using an early version of Fortran. Later, he convinced his father to buy a TRS-80, where he wrote simple games, a program to predict rocket heights, and a word processor.
+
     Context Relevance Score: 0.0
-    Factual Accuracy Score: 1.0
-    Response Completeness Score: 0.0
-
-
-    Question: When and how did Paul Graham's mother die?
-    Context Relevance Score: 0.0
-    Factual Accuracy Score: 1.0
-    Response Completeness Score: 0.0
-
-
-    Question: What, in Paul Graham's opinion, is the most distinctive thing about YC?
-    Context Relevance Score: 1.0
     Factual Accuracy Score: 1.0
     Response Completeness Score: 1.0
 
 
+    Question: When and how did Paul Graham's mother die?
+    Context: I was invited to give a talk at a Lisp conference, so I gave one about how we'd used Lisp at Viaweb. Afterward I put a postscript file of this talk online, on paulgraham.com, which I'd created years before using Viaweb but had never used for anything. In one day it got 30,000...
+    Response: Paul Graham's mother died when he was 18 years old, from a brain tumor.
+
+    Context Relevance Score: 0.0
+    Factual Accuracy Score: 0.0
+    Response Completeness Score: 1.0
+
+
+    Question: What, in Paul Graham's opinion, is the most distinctive thing about YC?
+    Context: Obviously software and venture capital will be, but who would have predicted that essay writing would be?  [13] Y Combinator was not the original name. At first we were called Cambridge Seed. But we didn't want a regional name, in case someone copied us in Silicon Valley, so we...
+    Response: The most distinctive thing about Y Combinator, according to Paul Graham, is that instead of deciding for himself what to work on, the problems come to him. Every 6 months, a new batch of startups brings their problems, which then become the focus of YC's work.
+
+    Context Relevance Score: 0.0
+    Factual Accuracy Score: 0.5
+    Response Completeness Score: 1.0
+
+
     Question: When and how did Paul Graham meet Jessica Livingston?
+    Context: I was invited to give a talk at a Lisp conference, so I gave one about how we'd used Lisp at Viaweb. Afterward I put a postscript file of this talk online, on paulgraham.com, which I'd created years before using Viaweb but had never used for anything. In one day it got 30,000...
+    Response: Paul Graham met Jessica Livingston at a big party at his house in October 2003.
+
     Context Relevance Score: 1.0
-    Factual Accuracy Score: 1.0
-    Response Completeness Score: 0.5
+    Factual Accuracy Score: 0.5
+    Response Completeness Score: 1.0
 
 
     Question: What is Bel, and when and where was it written?
+    Context: It took 4 years, from March 26, 2015 to October 12, 2019. It was fortunate that I had a precisely defined goal, or it would have been hard to keep at it for so long.  I wrote this new Lisp, called Bel, in itself in Arc. That may sound like a contradiction, but it's an indication...
+    Response: Bel is a new Lisp that was written in Arc. It was developed over a period of 4 years, from March 26, 2015 to October 12, 2019. Most of the work on Bel was done in England, where the author had moved to in the summer of 2016.
+
     Context Relevance Score: 1.0
     Factual Accuracy Score: 1.0
-    Response Completeness Score: 0.0
+    Response Completeness Score: 1.0
 
 Here's an example of the dashboard showing how you can filter and drill down to the failing cases and get insights on the failing cases:
 ![image-2.png](https://uptrain-assets.s3.ap-south-1.amazonaws.com/images/llamaindex/image-2.png)
@@ -211,18 +264,21 @@ Here's an example of the dashboard showing how you can filter and drill down to 
 
 The **sub-question query engine** is used to tackle the problem of answering a complex query using multiple data sources. It first breaks down the complex query into sub-questions for each relevant data source, then gathers all the intermediate responses and synthesizes a final response.
 
-UpTrain callback handler will automatically capture the sub-question and the responses for each of them once generated and will run the following three evaluations *(Graded from 0 to 1)* on the response:
+UpTrain callback handler will automatically capture the sub-question and the responses for each of them once generated and will run the following three evaluations _(Graded from 0 to 1)_ on the response:
+
 - **[Context Relevance](https://docs.uptrain.ai/predefined-evaluations/context-awareness/context-relevance)**: Determines if the retrieved context has sufficient information to answer the user query or not.
 - **[Factual Accuracy](https://docs.uptrain.ai/predefined-evaluations/context-awareness/factual-accuracy)**: Assesses if the LLM's response can be verified via the retrieved context.
 - **[Response Completeness](https://docs.uptrain.ai/predefined-evaluations/response-quality/response-completeness)**: Checks if the response contains all the information required to answer the user query comprehensively.
 
 In addition to the above evaluations, the callback handler will also run the following evaluation:
+
 - **[Sub Query Completeness](https://docs.uptrain.ai/predefined-evaluations/query-quality/sub-query-completeness)**: Assures that the sub-questions accurately and comprehensively cover the original query.
 
 ```python
 # build index and query engine
 vector_query_engine = VectorStoreIndex.from_documents(
-    documents=documents, use_async=True, service_context=service_context
+    documents=documents,
+    use_async=True,
 ).as_query_engine()
 
 query_engine_tools = [
@@ -237,7 +293,6 @@ query_engine_tools = [
 
 query_engine = SubQuestionQueryEngine.from_defaults(
     query_engine_tools=query_engine_tools,
-    service_context=service_context,
     use_async=True,
 )
 
@@ -246,22 +301,41 @@ response = query_engine.query(
 )
 ```
 
-    Question: What did Paul Graham work on during YC?
-    Context Relevance Score: 0.5
+    Generated 3 sub questions.
+    [1;3;38;2;237;90;200m[documents] Q: What did Paul Graham work on before Y Combinator?
+    [0m[1;3;38;2;90;149;237m[documents] Q: What did Paul Graham work on during Y Combinator?
+    [0m[1;3;38;2;11;159;203m[documents] Q: What did Paul Graham work on after Y Combinator?
+    [0m[1;3;38;2;11;159;203m[documents] A: Paul Graham worked on a project with Robert and Trevor after Y Combinator.
+    [0m[1;3;38;2;237;90;200m[documents] A: Paul Graham worked on projects with his colleagues Robert and Trevor before Y Combinator.
+    [0m[1;3;38;2;90;149;237m[documents] A: Paul Graham worked on writing essays and working on Y Combinator during his time at Y Combinator.
+    [0m
+
+
+    Question: What did Paul Graham work on after Y Combinator?
+    Context: And I bought another building in Cambridge, a former candy factory (and later, twas said, porn studio), to use as an office.  One night in October 2003 there was a big party at my house. It was a clever idea of my friend Maria Daniels, who was one of the thursday diners...
+    Response: Paul Graham worked on a project with Robert and Trevor after Y Combinator.
+
+    Context Relevance Score: 0.0
     Factual Accuracy Score: 1.0
     Response Completeness Score: 0.5
 
 
-    Question: What did Paul Graham work on after YC?
-    Context Relevance Score: 0.5
+    Question: What did Paul Graham work on before Y Combinator?
+    Context: And I bought another building in Cambridge, a former candy factory (and later, twas said, porn studio), to use as an office.  One night in October 2003 there was a big party at my house. It was a clever idea of my friend Maria Daniels, who was one of the thursday diners...
+    Response: Paul Graham worked on projects with his colleagues Robert and Trevor before Y Combinator.
+
+    Context Relevance Score: 0.0
     Factual Accuracy Score: 1.0
     Response Completeness Score: 0.5
 
 
-    Question: What did Paul Graham work on before YC?
-    Context Relevance Score: 1.0
-    Factual Accuracy Score: 1.0
-    Response Completeness Score: 0.0
+    Question: What did Paul Graham work on during Y Combinator?
+    Context: And I bought another building in Cambridge, a former candy factory (and later, twas said, porn studio), to use as an office.  One night in October 2003 there was a big party at my house. It was a clever idea of my friend Maria Daniels, who was one of the thursday diners...
+    Response: Paul Graham worked on writing essays and working on Y Combinator during his time at Y Combinator.
+
+    Context Relevance Score: 0.0
+    Factual Accuracy Score: 0.5
+    Response Completeness Score: 0.5
 
 
     Question: How was Paul Grahams life different before, during, and after YC?
@@ -273,7 +347,7 @@ Here's an example of the dashboard visualizing the scores of the sub-questions i
 
 # 3. Re-ranking
 
-Re-ranking is the process of reordering the nodes based on their relevance to the query. There are multiple classes of re-ranking algorithms offered by Llamaindex. We have used CohereRerank for this example.
+Re-ranking is the process of reordering the nodes based on their relevance to the query. There are multiple classes of re-ranking algorithms offered by Llamaindex. We have used LLMRerank for this example.
 
 The re-ranker allows you to enter the number of top n nodes that will be returned after re-ranking. If this value remains the same as the original number of nodes, the re-ranker will only re-rank the nodes and not change the number of nodes. Otherwise, it will re-rank the nodes and return the top n nodes.
 
@@ -286,19 +360,25 @@ If the number of nodes returned after re-ranking is the same as the original num
 - **[Context Reranking](https://docs.uptrain.ai/predefined-evaluations/context-awareness/context-reranking)**: Checks if the order of re-ranked nodes is more relevant to the query than the original order.
 
 ```python
-api_key = "**********************************"  # Insert cohere API key here
-cohere_rerank = CohereRerank(
-    api_key=api_key, top_n=5
-)  # In this example, the number of nodes before re-ranking is 5 and after re-ranking is also 5.
+callback_handler = UpTrainCallbackHandler(
+    key_type="openai",
+    api_key=os.environ["OPENAI_API_KEY"],
+    project_name_prefix="llama",
+)
+Settings.callback_manager = CallbackManager([callback_handler])
+
+rerank_postprocessor = SentenceTransformerRerank(
+    top_n=3,  # number of nodes after reranking
+    keep_retrieval_score=True,
+)
 
 index = VectorStoreIndex.from_documents(
-    documents=documents, service_context=service_context
+    documents=documents,
 )
 
 query_engine = index.as_query_engine(
-    similarity_top_k=10,
-    node_postprocessors=[cohere_rerank],
-    service_context=service_context,
+    similarity_top_k=3,  # number of nodes before reranking
+    node_postprocessors=[rerank_postprocessor],
 )
 
 response = query_engine.query(
@@ -307,27 +387,43 @@ response = query_engine.query(
 ```
 
     Question: What did Sam Altman do in this essay?
+    Context: 1. There were parts of the job I didn't like. Disputes between cofounders, figuring out when people were lying to us, fighting with people who maltreated the startups, and so on. But I worked hard even at the parts I didn't like. I was haunted by something Kevin Hale once said about...
     Context Reranking Score: 0.0
 
-## 3b. Re-ranking (With different number of nodes)
+
+    Question: What did Sam Altman do in this essay?
+    Context: retrieval_score: 0.7978001246383588  I was invited to give a talk at a Lisp conference, so I gave one about how we'd used Lisp at Viaweb. Afterward I put a postscript file of this talk online, on paulgraham.com, which I'd created years before using Viaweb but had never used for anything...
+    Response: Sam Altman was asked to become the president of Y Combinator after the original founders decided to step back and reorganize the company for long-term sustainability.
+
+    Context Relevance Score: 1.0
+    Factual Accuracy Score: 1.0
+    Response Completeness Score: 0.5
+
+# 3b. Re-ranking (With different number of nodes)
 
 If the number of nodes returned after re-ranking is the lesser as the original number of nodes, the following evaluation will be performed:
 
 - **[Context Conciseness](https://docs.uptrain.ai/predefined-evaluations/context-awareness/context-conciseness)**: Examines whether the reduced number of nodes still provides all the required information.
 
 ```python
-api_key = "**********************************"  # insert cohere API key here
-cohere_rerank = CohereRerank(
-    api_key=api_key, top_n=2
-)  # In this example, the number of nodes before re-ranking is 5 and after re-ranking is 2.
+callback_handler = UpTrainCallbackHandler(
+    key_type="openai",
+    api_key=os.environ["OPENAI_API_KEY"],
+    project_name_prefix="llama",
+)
+Settings.callback_manager = CallbackManager([callback_handler])
+
+rerank_postprocessor = SentenceTransformerRerank(
+    top_n=2,  # Number of nodes after re-ranking
+    keep_retrieval_score=True,
+)
 
 index = VectorStoreIndex.from_documents(
-    documents=documents, service_context=service_context
+    documents=documents,
 )
 query_engine = index.as_query_engine(
-    similarity_top_k=10,
-    node_postprocessors=[cohere_rerank],
-    service_context=service_context,
+    similarity_top_k=5,  # Number of nodes before re-ranking
+    node_postprocessors=[rerank_postprocessor],
 )
 
 # Use your advanced RAG
@@ -337,18 +433,22 @@ response = query_engine.query(
 ```
 
     Question: What did Sam Altman do in this essay?
-    Context Conciseness Score: 1.0
+    Context: There were parts of the job I didn't like. Disputes between cofounders, figuring out when people were lying to us, fighting with people who maltreated the startups, and so on. But I worked hard even at the parts I didn't like. I was haunted by something Kevin Hale once said about...
+    Context Conciseness Score: 0.0
+
+
+    Question: What did Sam Altman do in this essay?
+    Context: retrieval_score: 0.7844787960038967  We invested $6k per founder, which in the typical two-founder case was $12k, in return for 6%. That had to be fair, because it was twice as good as the deal we ourselves had taken. Plus that first summer, which was really hot, Jessica brought...
+    Response: Sam Altman offered unsolicited advice to the author during a visit to California for interviews.
+
+
+    Context Relevance Score: 1.0
+    Factual Accuracy Score: 1.0
+    Response Completeness Score: 0.5
 
 # UpTrain's Managed Service Dashboard and Insights
 
-The UpTrain Managed Service offers the following features:
-
-1. Advanced dashboards with drill-down and filtering options.
-1. Identification of insights and common themes among unsuccessful cases.
-1. Real-time observability and monitoring of production data.
-1. Integration with CI/CD pipelines for seamless regression testing.
-
-To define the UpTrain callback handler, the only change required is to set the `key_type` and `api_key` parameters. The rest of the code remains the same.
+To use the UpTrain's managed service via the UpTrain callback handler, the only change required is to set the `key_type` and `api_key` parameters. The rest of the code remains the same.
 
 ```python
 callback_handler = UpTrainCallbackHandler(

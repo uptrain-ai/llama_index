@@ -16,7 +16,7 @@ The RAG query engine plays a crucial role in retrieving context and generating r
 
 ## 2. **Sub-Question Query Generation Evaluation**:
 
-The SubQuestionQueryGeneration operator decomposes a question into sub-questions, generating responses for each using a RAG query engine. To evaluate the performance of SubQuery module, we add another check  as well as run the above three for all the sub-queries:
+The SubQuestionQueryGeneration operator decomposes a question into sub-questions, generating responses for each using a RAG query engine. To evaluate the performance of SubQuery module, we add another check as well as run the above three for all the sub-queries:
 
 - **[Sub Query Completeness](https://docs.uptrain.ai/predefined-evaluations/query-quality/sub-query-completeness)**: Assures that the sub-questions accurately and comprehensively cover the original query.
 
